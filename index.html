@@ -18,7 +18,6 @@
 </head>
 <body>
   <div class="app">
-    <!-- Header -->
     <header class="header">
       <div class="header-inner">
         <div class="logo">
@@ -40,7 +39,6 @@
       </div>
     </header>
 
-    <!-- Stats Bar -->
     <div class="stats-bar">
       <div class="stat-card">
         <div class="stat-label">Взято товаров</div>
@@ -58,16 +56,13 @@
       </div>
     </div>
 
-    <!-- Main Content -->
     <main class="main">
-      <!-- Empty state -->
       <div class="empty-state" id="emptyState">
         <div class="empty-icon">◈</div>
         <div class="empty-title">Записей пока нет</div>
         <div class="empty-sub">Нажмите «Добавить» чтобы внести первую запись</div>
       </div>
 
-      <!-- Table -->
       <div class="table-wrapper" id="tableWrapper" style="display:none">
         <table class="table">
           <thead>
@@ -75,6 +70,7 @@
               <th class="th-date">Дата</th>
               <th class="th-taken">Взято товаров</th>
               <th class="th-paid">Сдано</th>
+              <th class="th-returned">Возврат</th>
               <th class="th-debt">Долг</th>
               <th class="th-actions"></th>
             </tr>
@@ -85,6 +81,7 @@
               <td class="tf-label">Итого</td>
               <td class="tf-taken" id="footTaken">—</td>
               <td class="tf-paid" id="footPaid">—</td>
+              <td class="tf-returned" id="footReturned">—</td>
               <td class="tf-debt" id="footDebt">—</td>
               <td></td>
             </tr>
@@ -94,7 +91,6 @@
     </main>
   </div>
 
-  <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal" id="modal">
       <div class="modal-header">
@@ -122,6 +118,13 @@
             <span class="input-suffix">₸</span>
           </div>
         </div>
+        <div class="field">
+          <label class="label">Возврат товара (сумма)</label>
+          <div class="input-wrap">
+            <input type="number" class="input" id="fieldReturned" placeholder="0" min="0" step="0.01" inputmode="decimal" />
+            <span class="input-suffix">₸</span>
+          </div>
+        </div>
         <div class="field debt-preview">
           <div class="debt-preview-label">Долг по записи</div>
           <div class="debt-preview-value" id="debtPreview">0 ₸</div>
@@ -134,10 +137,8 @@
     </div>
   </div>
 
-  <!-- Toast -->
   <div class="toast" id="toast"></div>
 
-  <!-- Confirm dialog -->
   <div class="modal-overlay" id="confirmOverlay">
     <div class="modal confirm-modal" id="confirmModal">
       <div class="modal-header">
