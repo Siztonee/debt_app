@@ -493,3 +493,28 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 input[type=number] { -moz-appearance: textfield; }
+
+
+
+/* Добавь к селектору th-taken, th-paid... */
+.th-taken, .th-paid, .th-returned, .th-debt { text-align: right; }
+
+/* Добавь к селектору td-taken, td-paid... */
+.td-taken, .td-paid, .td-returned, .td-debt {
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.td-returned { color: var(--text2); } /* Спокойный серый цвет для возвратов */
+
+/* Добавь к селектору tf-taken, tf-paid... */
+.tf-taken, .tf-paid, .tf-returned, .tf-debt { text-align: right; }
+.tf-returned { color: var(--text2); }
+
+/* Немного увеличим минимальную ширину таблицы для корректного горизонтального скролла на мобилках */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px; /* Было 520px */
+}
