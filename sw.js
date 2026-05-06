@@ -1,4 +1,4 @@
-const CACHE_NAME = 'debt-app-v1';
+const CACHE_NAME = 'debt-app-v1.0.1';
 const ASSETS = [
   '/debt_app/',
   '/debt_app/index.html',
