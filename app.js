@@ -62,12 +62,14 @@ function render() {
   }
 
   tbody.innerHTML = '';
-  let totalTaken = 0, totalPaid = 0, totalDebt = 0;
+  let totalTaken = 0, totalPaid = 0, totalReturned = 0, totalDebt = 0;
 
   sorted.forEach(r => {
-    const debt = (r.taken || 0) - (r.paid || 0);
+    // Новая формула учета долга с вычетом возврата
+    const debt = (r.taken || 0) - (r.paid || 0) - (r.returned || 0);
     totalTaken += r.taken || 0;
     totalPaid += r.paid || 0;
+    totalReturned += r.returned || 0;
     totalDebt += debt;
 
     const debtClass = debt > 0 ? 'negative' : debt < 0 ? 'positive' : 'zero';
@@ -77,6 +79,7 @@ function render() {
       <td class="td-date">${fmtDate(r.date)}</td>
       <td class="td-taken">${fmt(r.taken)}</td>
       <td class="td-paid">${fmt(r.paid)}</td>
+      <td class="td-returned">${fmt(r.returned)}</td>
       <td class="td-debt ${debtClass}">${fmt(debt)}</td>
       <td class="td-actions">
         <div class="row-actions">
@@ -95,11 +98,12 @@ function render() {
   // Footer
   document.getElementById('footTaken').textContent = totalTaken ? fmt(totalTaken) : '—';
   document.getElementById('footPaid').textContent = totalPaid ? fmt(totalPaid) : '—';
+  document.getElementById('footReturned').textContent = totalReturned ? fmt(totalReturned) : '—';
   const footDebt = document.getElementById('footDebt');
   footDebt.textContent = records.length ? fmt(totalDebt) : '—';
   footDebt.className = 'tf-debt';
 
-  // Stats
+  // Stats (Долг в шапке теперь тоже учитывает возвраты)
   document.getElementById('totalTaken').textContent = fmt(totalTaken);
   document.getElementById('totalPaid').textContent = fmt(totalPaid);
   document.getElementById('totalDebt').textContent = fmt(totalDebt);
@@ -120,6 +124,7 @@ function openAdd() {
   document.getElementById('fieldDate').value = todayISO();
   document.getElementById('fieldTaken').value = '';
   document.getElementById('fieldPaid').value = '';
+  document.getElementById('fieldReturned').value = '';
   updateDebtPreview();
   openModal();
 }
@@ -132,6 +137,7 @@ function openEdit(id) {
   document.getElementById('fieldDate').value = r.date || '';
   document.getElementById('fieldTaken').value = r.taken != null ? r.taken : '';
   document.getElementById('fieldPaid').value = r.paid != null ? r.paid : '';
+  document.getElementById('fieldReturned').value = r.returned != null ? r.returned : '';
   updateDebtPreview();
   openModal();
 }
@@ -149,14 +155,15 @@ function saveRecord() {
   const date = document.getElementById('fieldDate').value;
   const taken = parseFloat(document.getElementById('fieldTaken').value) || 0;
   const paid = parseFloat(document.getElementById('fieldPaid').value) || 0;
+  const returned = parseFloat(document.getElementById('fieldReturned').value) || 0;
 
   if (!date) { showToast('Укажите дату'); return; }
 
   if (editingId) {
     const idx = records.findIndex(x => x.id === editingId);
-    if (idx !== -1) records[idx] = { id: editingId, date, taken, paid };
+    if (idx !== -1) records[idx] = { id: editingId, date, taken, paid, returned };
   } else {
-    records.push({ id: uid(), date, taken, paid });
+    records.push({ id: uid(), date, taken, paid, returned });
   }
 
   save(records);
@@ -187,7 +194,8 @@ function deleteRecord() {
 function updateDebtPreview() {
   const taken = parseFloat(document.getElementById('fieldTaken').value) || 0;
   const paid = parseFloat(document.getElementById('fieldPaid').value) || 0;
-  const debt = taken - paid;
+  const returned = parseFloat(document.getElementById('fieldReturned').value) || 0;
+  const debt = taken - paid - returned;
   const el = document.getElementById('debtPreview');
   el.textContent = fmt(debt);
   el.style.color = debt > 0 ? 'var(--accent)' : debt < 0 ? 'var(--green)' : 'var(--text3)';
@@ -197,10 +205,10 @@ function updateDebtPreview() {
 function exportCSV() {
   if (records.length === 0) { showToast('Нет записей для экспорта'); return; }
   const sorted = [...records].sort((a, b) => a.date.localeCompare(b.date));
-  const rows = [['Дата', 'Взято товаров', 'Сдано', 'Долг']];
+  const rows = [['Дата', 'Взято товаров', 'Сдано', 'Возврат', 'Долг']];
   sorted.forEach(r => {
-    const debt = (r.taken || 0) - (r.paid || 0);
-    rows.push([fmtDate(r.date), r.taken || 0, r.paid || 0, debt]);
+    const debt = (r.taken || 0) - (r.paid || 0) - (r.returned || 0);
+    rows.push([fmtDate(r.date), r.taken || 0, r.paid || 0, r.returned || 0, debt]);
   });
   const csv = rows.map(r => r.join(';')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -231,6 +239,7 @@ document.getElementById('confirmOverlay').addEventListener('click', e => {
 
 document.getElementById('fieldTaken').addEventListener('input', updateDebtPreview);
 document.getElementById('fieldPaid').addEventListener('input', updateDebtPreview);
+document.getElementById('fieldReturned').addEventListener('input', updateDebtPreview); // Слушатель для нового поля
 
 // Keyboard
 document.addEventListener('keydown', e => {
