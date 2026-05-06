@@ -22,7 +22,7 @@ function uid() {
 }
 
 function fmt(n) {
-  if (n == null || isNaN(n)) return '—';
+  if (n == null || isNaN(n)) return '0 ₸';
   return n.toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' ₸';
 }
 
@@ -65,11 +65,16 @@ function render() {
   let totalTaken = 0, totalPaid = 0, totalReturned = 0, totalDebt = 0;
 
   sorted.forEach(r => {
-    // Новая формула учета долга с вычетом возврата
-    const debt = (r.taken || 0) - (r.paid || 0) - (r.returned || 0);
-    totalTaken += r.taken || 0;
-    totalPaid += r.paid || 0;
-    totalReturned += r.returned || 0;
+    // Безопасное приведение к числу (защита от старых null/undefined данных)
+    const taken = parseFloat(r.taken) || 0;
+    const paid = parseFloat(r.paid) || 0;
+    const returned = parseFloat(r.returned) || 0;
+    
+    const debt = taken - paid - returned;
+    
+    totalTaken += taken;
+    totalPaid += paid;
+    totalReturned += returned;
     totalDebt += debt;
 
     const debtClass = debt > 0 ? 'negative' : debt < 0 ? 'positive' : 'zero';
@@ -77,9 +82,9 @@ function render() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="td-date">${fmtDate(r.date)}</td>
-      <td class="td-taken">${fmt(r.taken)}</td>
-      <td class="td-paid">${fmt(r.paid)}</td>
-      <td class="td-returned">${fmt(r.returned)}</td>
+      <td class="td-taken">${fmt(taken)}</td>
+      <td class="td-paid">${fmt(paid)}</td>
+      <td class="td-returned">${fmt(returned)}</td>
       <td class="td-debt ${debtClass}">${fmt(debt)}</td>
       <td class="td-actions">
         <div class="row-actions">
@@ -103,9 +108,10 @@ function render() {
   footDebt.textContent = records.length ? fmt(totalDebt) : '—';
   footDebt.className = 'tf-debt';
 
-  // Stats (Долг в шапке теперь тоже учитывает возвраты)
+  // Stats (Обновление верхних карточек)
   document.getElementById('totalTaken').textContent = fmt(totalTaken);
   document.getElementById('totalPaid').textContent = fmt(totalPaid);
+  document.getElementById('totalReturned').textContent = fmt(totalReturned); // Новый показатель
   document.getElementById('totalDebt').textContent = fmt(totalDebt);
 
   // Row events
@@ -207,8 +213,11 @@ function exportCSV() {
   const sorted = [...records].sort((a, b) => a.date.localeCompare(b.date));
   const rows = [['Дата', 'Взято товаров', 'Сдано', 'Возврат', 'Долг']];
   sorted.forEach(r => {
-    const debt = (r.taken || 0) - (r.paid || 0) - (r.returned || 0);
-    rows.push([fmtDate(r.date), r.taken || 0, r.paid || 0, r.returned || 0, debt]);
+    const taken = parseFloat(r.taken) || 0;
+    const paid = parseFloat(r.paid) || 0;
+    const returned = parseFloat(r.returned) || 0;
+    const debt = taken - paid - returned;
+    rows.push([fmtDate(r.date), taken, paid, returned, debt]);
   });
   const csv = rows.map(r => r.join(';')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -239,7 +248,7 @@ document.getElementById('confirmOverlay').addEventListener('click', e => {
 
 document.getElementById('fieldTaken').addEventListener('input', updateDebtPreview);
 document.getElementById('fieldPaid').addEventListener('input', updateDebtPreview);
-document.getElementById('fieldReturned').addEventListener('input', updateDebtPreview); // Слушатель для нового поля
+document.getElementById('fieldReturned').addEventListener('input', updateDebtPreview);
 
 // Keyboard
 document.addEventListener('keydown', e => {
@@ -257,5 +266,6 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.log('Ошибка SW:', err));
     });
 }
+
 /* ─── Init ─── */
 render();
