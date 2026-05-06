@@ -242,10 +242,11 @@ document.addEventListener('keydown', e => {
 
 /* ─── Service Worker ─── */
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  });
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/debt_app/sw.js')
+            .then(reg => console.log('Service Worker зарегистрирован!', reg))
+            .catch(err => console.log('Ошибка SW:', err));
+    });
 }
-
 /* ─── Init ─── */
 render();
